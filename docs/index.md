@@ -1,6 +1,661 @@
----
-title: My Site
----
 
-# Hello from docs/
-If you can see this, the site is building from the docs folder!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Time Efficiency Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom slider styling */
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .slider:hover {
+            opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .panel {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-800 mb-3">Workout Time Efficiency Simulator</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Can you design an effective full-body workout in under 45 minutes? Adjust the variables below to find the perfect balance between training volume and time efficiency.
+            </p>
+        </header>
+
+        <!-- Mode Selector -->
+        <div class="flex justify-center mb-8">
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                <button id="freeBuildBtn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-gray-200 rounded-l-lg hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:bg-blue-700">
+                    Free Build Mode
+                </button>
+                <button id="timeChallengeBtn" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:text-blue-700">
+                    Time Challenge Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- Challenge Info (Hidden by default) -->
+        <div id="challengeInfo" class="hidden mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 panel rounded-r-lg">
+            <p class="font-medium">Time Challenge: Design a balanced full-body workout in under 45 minutes!</p>
+            <p class="text-sm mt-1">Adjust the variables to meet the target while maintaining an effective workout.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Input Variables -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Warm-up & Cool-down Panel -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                        Warm-up & Cool-down
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Warm-up Duration: <span id="warmupValue" class="font-bold text-blue-600">5</span> minutes
+                            </label>
+                            <input type="range" id="warmupSlider" min="0" max="15" value="5" step="1" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Cool-down Duration: <span id="cooldownValue" class="font-bold text-blue-600">5</span> minutes
+                            </label>
+                            <input type="range" id="cooldownSlider" min="0" max="15" value="5" step="1" class="slider w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resistance Training Panel -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                        Resistance Training
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Exercises: <span id="exercisesValue" class="font-bold text-green-600">6</span>
+                            </label>
+                            <input type="range" id="exercisesSlider" min="1" max="12" value="6" step="1" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Sets per Exercise: <span id="setsValue" class="font-bold text-green-600">3</span>
+                            </label>
+                            <input type="range" id="setsSlider" min="1" max="5" value="3" step="1" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Reps per Set: <span id="repsValue" class="font-bold text-green-600">10</span>
+                            </label>
+                            <input type="range" id="repsSlider" min="5" max="20" value="10" step="1" class="slider w-full">
+                        </div>
+                    </div>
+
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Tempo Components (seconds per rep)</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Eccentric: <span id="eccentricValue" class="font-bold text-green-600">3</span>s
+                            </label>
+                            <input type="range" id="eccentricSlider" min="1" max="6" value="3" step="0.5" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Bottom Isometric: <span id="bottomIsoValue" class="font-bold text-green-600">0</span>s
+                            </label>
+                            <input type="range" id="bottomIsoSlider" min="0" max="5" value="0" step="0.5" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Concentric: <span id="concentricValue" class="font-bold text-green-600">1</span>s
+                            </label>
+                            <input type="range" id="concentricSlider" min="0.5" max="4" value="1" step="0.5" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Top Isometric: <span id="topIsoValue" class="font-bold text-green-600">0</span>s
+                            </label>
+                            <input type="range" id="topIsoSlider" min="0" max="3" value="0" step="0.5" class="slider w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rest & Transition Panel -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                        Rest & Transition
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Rest Between Sets: <span id="restValue" class="font-bold text-purple-600">60</span>s
+                            </label>
+                            <input type="range" id="restSlider" min="15" max="180" value="60" step="15" class="slider w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Transition Time: <span id="transitionValue" class="font-bold text-purple-600">30</span>s
+                            </label>
+                            <input type="range" id="transitionSlider" min="10" max="60" value="30" step="5" class="slider w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cardiovascular Panel -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                        Cardiovascular Segment
+                    </h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Cardio Duration: <span id="cardioValue" class="font-bold text-red-600">10</span> minutes
+                        </label>
+                        <input type="range" id="cardioSlider" min="0" max="30" value="10" step="1" class="slider w-full">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Visualization -->
+            <div class="space-y-6">
+                <!-- Total Time Display -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Total Workout Time</h2>
+                    <div class="text-center mb-4">
+                        <div class="text-4xl font-bold text-gray-800 mb-2" id="totalTime">45:00</div>
+                        <div class="text-sm text-gray-600">minutes:seconds</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                        <div id="timeProgress" class="progress-bar bg-blue-600 h-4 rounded-full" style="width: 50%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-600">
+                        <span>0 min</span>
+                        <span id="targetTime" class="font-medium">Target: 45 min</span>
+                        <span>90 min</span>
+                    </div>
+                    <div id="challengeResult" class="hidden mt-4 p-3 rounded-lg text-center font-medium"></div>
+                </div>
+
+                <!-- Time Breakdown -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Time Breakdown</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Warm-up</span>
+                            <span class="font-medium" id="warmupTime">5:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Exercise Time</span>
+                            <span class="font-medium" id="exerciseTime">18:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Rest Time</span>
+                            <span class="font-medium" id="restTime">15:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Transition Time</span>
+                            <span class="font-medium" id="transitionTime">2:30</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Cardio</span>
+                            <span class="font-medium" id="cardioTime">10:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Cool-down</span>
+                            <span class="font-medium" id="cooldownTime">5:00</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3 mt-3">
+                            <div class="flex justify-between font-bold">
+                                <span>Total</span>
+                                <span id="totalBreakdown">45:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Distribution Chart -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Time Distribution</h2>
+                    <div class="min-h-[250px] max-h-[300px]">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Workout Report -->
+                <div class="bg-white p-6 rounded-lg panel">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Workout Insights</h2>
+                    <div id="insights" class="text-sm text-gray-700 space-y-2">
+                        <p>Adjust the variables to see insights about your workout configuration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize variables
+        let workoutData = {
+            warmup: 5,
+            cooldown: 5,
+            exercises: 6,
+            sets: 3,
+            reps: 10,
+            eccentric: 3,
+            bottomIso: 0,
+            concentric: 1,
+            topIso: 0,
+            rest: 60,
+            transition: 30,
+            cardio: 10
+        };
+
+        let mode = 'free'; // 'free' or 'challenge'
+        let timeChart = null;
+
+        // DOM elements
+        const elements = {
+            // Sliders
+            warmupSlider: document.getElementById('warmupSlider'),
+            cooldownSlider: document.getElementById('cooldownSlider'),
+            exercisesSlider: document.getElementById('exercisesSlider'),
+            setsSlider: document.getElementById('setsSlider'),
+            repsSlider: document.getElementById('repsSlider'),
+            eccentricSlider: document.getElementById('eccentricSlider'),
+            bottomIsoSlider: document.getElementById('bottomIsoSlider'),
+            concentricSlider: document.getElementById('concentricSlider'),
+            topIsoSlider: document.getElementById('topIsoSlider'),
+            restSlider: document.getElementById('restSlider'),
+            transitionSlider: document.getElementById('transitionSlider'),
+            cardioSlider: document.getElementById('cardioSlider'),
+
+            // Value displays
+            warmupValue: document.getElementById('warmupValue'),
+            cooldownValue: document.getElementById('cooldownValue'),
+            exercisesValue: document.getElementById('exercisesValue'),
+            setsValue: document.getElementById('setsValue'),
+            repsValue: document.getElementById('repsValue'),
+            eccentricValue: document.getElementById('eccentricValue'),
+            bottomIsoValue: document.getElementById('bottomIsoValue'),
+            concentricValue: document.getElementById('concentricValue'),
+            topIsoValue: document.getElementById('topIsoValue'),
+            restValue: document.getElementById('restValue'),
+            transitionValue: document.getElementById('transitionValue'),
+            cardioValue: document.getElementById('cardioValue'),
+
+            // Results
+            totalTime: document.getElementById('totalTime'),
+            timeProgress: document.getElementById('timeProgress'),
+            targetTime: document.getElementById('targetTime'),
+            challengeResult: document.getElementById('challengeResult'),
+            warmupTime: document.getElementById('warmupTime'),
+            exerciseTime: document.getElementById('exerciseTime'),
+            restTime: document.getElementById('restTime'),
+            transitionTime: document.getElementById('transitionTime'),
+            cardioTime: document.getElementById('cardioTime'),
+            cooldownTime: document.getElementById('cooldownTime'),
+            totalBreakdown: document.getElementById('totalBreakdown'),
+            insights: document.getElementById('insights'),
+
+            // Mode buttons
+            freeBuildBtn: document.getElementById('freeBuildBtn'),
+            timeChallengeBtn: document.getElementById('timeChallengeBtn'),
+            challengeInfo: document.getElementById('challengeInfo')
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            timeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Warm-up', 'Exercise Time', 'Rest Time', 'Transition Time', 'Cardio', 'Cool-down'],
+                    datasets: [{
+                        data: [5, 18, 15, 2.5, 10, 5],
+                        backgroundColor: [
+                            '#3b82f6', // blue
+                            '#10b981', // green
+                            '#8b5cf6', // purple
+                            '#ec4899', // pink
+                            '#ef4444', // red
+                            '#f59e0b'  // amber
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Format time as MM:SS
+        function formatTime(minutes) {
+            const mins = Math.floor(minutes);
+            const secs = Math.round((minutes - mins) * 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Calculate workout times
+        function calculateWorkout() {
+            try {
+                // Time per rep in seconds
+                const timePerRep = workoutData.eccentric + workoutData.bottomIso + 
+                                  workoutData.concentric + workoutData.topIso;
+                
+                // Exercise time per set in seconds
+                const exerciseTimePerSet = workoutData.reps * timePerRep;
+                
+                // Total exercise time in minutes
+                const totalExerciseTime = (exerciseTimePerSet * workoutData.sets * workoutData.exercises) / 60;
+                
+                // Total rest time in minutes
+                const totalRestTime = (workoutData.rest * (workoutData.sets - 1) * workoutData.exercises) / 60;
+                
+                // Total transition time in minutes
+                const totalTransitionTime = (workoutData.transition * (workoutData.exercises - 1)) / 60;
+                
+                // Total workout time in minutes
+                const totalWorkoutTime = workoutData.warmup + totalExerciseTime + totalRestTime + 
+                                        totalTransitionTime + workoutData.cardio + workoutData.cooldown;
+                
+                return {
+                    warmup: workoutData.warmup,
+                    exercise: totalExerciseTime,
+                    rest: totalRestTime,
+                    transition: totalTransitionTime,
+                    cardio: workoutData.cardio,
+                    cooldown: workoutData.cooldown,
+                    total: totalWorkoutTime,
+                    timePerRep: timePerRep,
+                    exerciseTimePerSet: exerciseTimePerSet
+                };
+            } catch (error) {
+                console.error('Error calculating workout times:', error);
+                return {
+                    warmup: 0,
+                    exercise: 0,
+                    rest: 0,
+                    transition: 0,
+                    cardio: 0,
+                    cooldown: 0,
+                    total: 0,
+                    timePerRep: 0,
+                    exerciseTimePerSet: 0
+                };
+            }
+        }
+
+        // Update UI with calculated values
+        function updateUI() {
+            const times = calculateWorkout();
+            
+            // Update time displays
+            elements.totalTime.textContent = formatTime(times.total);
+            elements.warmupTime.textContent = formatTime(times.warmup);
+            elements.exerciseTime.textContent = formatTime(times.exercise);
+            elements.restTime.textContent = formatTime(times.rest);
+            elements.transitionTime.textContent = formatTime(times.transition);
+            elements.cardioTime.textContent = formatTime(times.cardio);
+            elements.cooldownTime.textContent = formatTime(times.cooldown);
+            elements.totalBreakdown.textContent = formatTime(times.total);
+            
+            // Update progress bar (max 90 minutes for visualization)
+            const progressPercentage = Math.min((times.total / 90) * 100, 100);
+            elements.timeProgress.style.width = `${progressPercentage}%`;
+            
+            // Update chart
+            if (timeChart) {
+                timeChart.data.datasets[0].data = [
+                    times.warmup,
+                    times.exercise,
+                    times.rest,
+                    times.transition,
+                    times.cardio,
+                    times.cooldown
+                ];
+                timeChart.update();
+            }
+            
+            // Update insights
+            updateInsights(times);
+            
+            // Check challenge if in challenge mode
+            if (mode === 'challenge') {
+                checkChallenge(times.total);
+            }
+        }
+
+        // Generate insights based on workout configuration
+        function updateInsights(times) {
+            const insights = [];
+            
+            // Exercise time insights
+            if (times.exercise > 30) {
+                insights.push("Your exercise time is quite long. Consider reducing sets or exercises to fit within time constraints.");
+            } else if (times.exercise < 10) {
+                insights.push("Your exercise time is relatively short. You might want to add more sets or exercises for a more comprehensive workout.");
+            }
+            
+            // Rest time insights
+            const restToExerciseRatio = times.rest / times.exercise;
+            if (restToExerciseRatio > 1.5) {
+                insights.push("Your rest time is significantly longer than your exercise time. Consider shorter rest periods for time efficiency.");
+            } else if (restToExerciseRatio < 0.5) {
+                insights.push("Your rest time is quite short compared to exercise time. This may be appropriate for circuit training or conditioning.");
+            }
+            
+            // Tempo insights
+            if (workoutData.eccentric > 4) {
+                insights.push("Your slow eccentric tempo emphasizes muscle control and time under tension, but increases overall workout duration.");
+            }
+            
+            if (workoutData.bottomIso > 2 || workoutData.topIso > 1) {
+                insights.push("Isometric pauses increase time under tension and workout difficulty, but also extend total session time.");
+            }
+            
+            // Total time insights
+            if (times.total > 75) {
+                insights.push("This is a lengthy workout session. Consider splitting into two sessions or reducing volume.");
+            } else if (times.total < 25) {
+                insights.push("This is a brief workout, suitable for a quick session or when time is limited.");
+            }
+            
+            // Cardio insights
+            const cardioRatio = times.cardio / times.total;
+            if (cardioRatio > 0.4) {
+                insights.push("Cardio makes up a significant portion of your workout. This is great for cardiovascular fitness but leaves less time for strength training.");
+            } else if (cardioRatio < 0.1 && times.cardio > 0) {
+                insights.push("Your cardio segment is relatively short. Consider increasing duration if cardiovascular fitness is a priority.");
+            }
+            
+            // Display insights
+            if (insights.length === 0) {
+                insights.push("Your workout appears well-balanced between volume and time efficiency.");
+            }
+            
+            elements.insights.innerHTML = insights.map(insight => `<p>• ${insight}</p>`).join('');
+        }
+
+        // Check if challenge is met
+        function checkChallenge(totalTime) {
+            const challengeResult = elements.challengeResult;
+            challengeResult.classList.remove('hidden');
+            
+            if (totalTime <= 45) {
+                challengeResult.textContent = "Challenge Complete! You've designed an effective workout under 45 minutes.";
+                challengeResult.className = 'mt-4 p-3 rounded-lg text-center font-medium bg-green-100 text-green-800';
+            } else {
+                challengeResult.textContent = `Keep trying! Your workout is ${formatTime(totalTime - 45)} over the 45-minute target.`;
+                challengeResult.className = 'mt-4 p-3 rounded-lg text-center font-medium bg-red-100 text-red-800';
+            }
+        }
+
+        // Set up event listeners for sliders
+        function setupEventListeners() {
+            // Mode buttons
+            elements.freeBuildBtn.addEventListener('click', () => {
+                mode = 'free';
+                elements.freeBuildBtn.className = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-gray-200 rounded-l-lg hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:bg-blue-700';
+                elements.timeChallengeBtn.className = 'px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:text-blue-700';
+                elements.challengeInfo.classList.add('hidden');
+                elements.challengeResult.classList.add('hidden');
+                elements.targetTime.textContent = 'Target: 45 min';
+            });
+            
+            elements.timeChallengeBtn.addEventListener('click', () => {
+                mode = 'challenge';
+                elements.timeChallengeBtn.className = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-gray-200 rounded-r-md hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:bg-blue-700';
+                elements.freeBuildBtn.className = 'px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:text-blue-700';
+                elements.challengeInfo.classList.remove('hidden');
+                elements.targetTime.textContent = 'Target: 45 min';
+                updateUI(); // Re-check challenge
+            });
+            
+            // Slider event listeners
+            elements.warmupSlider.addEventListener('input', (e) => {
+                workoutData.warmup = parseInt(e.target.value);
+                elements.warmupValue.textContent = workoutData.warmup;
+                updateUI();
+            });
+            
+            elements.cooldownSlider.addEventListener('input', (e) => {
+                workoutData.cooldown = parseInt(e.target.value);
+                elements.cooldownValue.textContent = workoutData.cooldown;
+                updateUI();
+            });
+            
+            elements.exercisesSlider.addEventListener('input', (e) => {
+                workoutData.exercises = parseInt(e.target.value);
+                elements.exercisesValue.textContent = workoutData.exercises;
+                updateUI();
+            });
+            
+            elements.setsSlider.addEventListener('input', (e) => {
+                workoutData.sets = parseInt(e.target.value);
+                elements.setsValue.textContent = workoutData.sets;
+                updateUI();
+            });
+            
+            elements.repsSlider.addEventListener('input', (e) => {
+                workoutData.reps = parseInt(e.target.value);
+                elements.repsValue.textContent = workoutData.reps;
+                updateUI();
+            });
+            
+            elements.eccentricSlider.addEventListener('input', (e) => {
+                workoutData.eccentric = parseFloat(e.target.value);
+                elements.eccentricValue.textContent = workoutData.eccentric;
+                updateUI();
+            });
+            
+            elements.bottomIsoSlider.addEventListener('input', (e) => {
+                workoutData.bottomIso = parseFloat(e.target.value);
+                elements.bottomIsoValue.textContent = workoutData.bottomIso;
+                updateUI();
+            });
+            
+            elements.concentricSlider.addEventListener('input', (e) => {
+                workoutData.concentric = parseFloat(e.target.value);
+                elements.concentricValue.textContent = workoutData.concentric;
+                updateUI();
+            });
+            
+            elements.topIsoSlider.addEventListener('input', (e) => {
+                workoutData.topIso = parseFloat(e.target.value);
+                elements.topIsoValue.textContent = workoutData.topIso;
+                updateUI();
+            });
+            
+            elements.restSlider.addEventListener('input', (e) => {
+                workoutData.rest = parseInt(e.target.value);
+                elements.restValue.textContent = workoutData.rest;
+                updateUI();
+            });
+            
+            elements.transitionSlider.addEventListener('input', (e) => {
+                workoutData.transition = parseInt(e.target.value);
+                elements.transitionValue.textContent = workoutData.transition;
+                updateUI();
+            });
+            
+            elements.cardioSlider.addEventListener('input', (e) => {
+                workoutData.cardio = parseInt(e.target.value);
+                elements.cardioValue.textContent = workoutData.cardio;
+                updateUI();
+            });
+        }
+
+        // Initialize the application
+        function init() {
+            try {
+                initChart();
+                setupEventListeners();
+                updateUI();
+                console.log('Workout Time Efficiency Simulator initialized successfully');
+            } catch (error) {
+                console.error('Error initializing application:', error);
+            }
+        }
+
+        // Start the application when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
